@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>De tu cuaderno al documento APA</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root{
+  --chalk-bg:#1f3326;
+  --chalk-bg-deep:#162619;
+  --chalk-white:#eef0e6;
+  --chalk-muted:#9fb3a0;
+  --pen-red:#b5483d;
+  --pen-red-dark:#943a31;
+  --paper:#fdfcf7;
+  --paper-edge:#e7e3d6;
+  --ink:#1c1c1a;
+  --ink-soft:#5a5a52;
+  --highlight:#f0c14b;
+  --highlight-soft:rgba(240,193,75,.32);
+  --mono:'IBM Plex Mono',monospace;
+  --hand:'Kalam',cursive;
+  --serif-ui:'Source Serif 4',Georgia,serif;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--paper);font-family:var(--serif-ui);color:var(--ink);}
+
+/* ---------- SECCIÓN PIZARRÓN ---------- */
+.chalk{
+  background:radial-gradient(circle at 20% 15%, rgba(255,255,255,.04), transparent 40%),
+             radial-gradient(circle at 80% 70%, rgba(255,255,255,.03), transparent 45%),
+             linear-gradient(180deg,var(--chalk-bg),var(--chalk-bg-deep));
+  color:var(--chalk-white);
+  padding:48px 24px 64px;
+  position:relative;
+}
+.chalk-inner{max-width:720px;margin:0 auto;}
+.eyebrow{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--chalk-muted);
+  margin:0 0 14px;
+}
+.headline{
+  font-family:var(--hand);
+  font-weight:700;
+  font-size:clamp(30px,5vw,44px);
+  line-height:1.15;
+  margin:0 0 10px;
+}
+.sub{
+  color:var(--chalk-muted);
+  font-size:15px;
+  line-height:1.6;
+  max-width:540px;
+  margin:0 0 36px;
+}
+.steps{display:flex;gap:6px;align-items:center;margin-bottom:40px;flex-wrap:wrap;}
+.step{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.04em;
+  color:var(--chalk-white);
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:20px;
+  padding:6px 12px;
+  white-space:nowrap;
+}
+.step.active{background:var(--pen-red);border-color:var(--pen-red);}
+.arrow{color:var(--chalk-muted);font-family:var(--mono);font-size:13px;}
+
+.upload-box{
+  border:2px dashed rgba(255,255,255,.28);
+  border-radius:14px;
+  padding:28px;
+  text-align:center;
+  transition:border-color .2s, background .2s;
+}
+.upload-box.has-image{border-style:solid;border-color:rgba(255,255,255,.18);}
+.upload-box input[type=file]{display:none;}
+.upload-label{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:var(--pen-red);
+  color:var(--chalk-white);
+  font-family:var(--mono);
+  font-size:13px;
+  letter-spacing:.03em;
+  padding:11px 20px;
+  border-radius:8px;
+  cursor:pointer;
+  transition:background .15s, transform .1s;
+}
+.upload-label:hover{background:var(--pen-red-dark);}
+.upload-label:active{transform:scale(.97);}
+.upload-hint{font-size:12.5px;color:var(--chalk-muted);margin-top:12px;}
+.thumb-row{display:flex;align-items:center;gap:14px;margin-top:18px;justify-content:center;flex-wrap:wrap;}
+.thumb{max-height:120px;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.35);}
+.thumb-meta{font-family:var(--mono);font-size:12px;color:var(--chalk-muted);text-align:left;}
+.thumb-item{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.thumb-item img{max-height:110px;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.35);}
+.thumb-label{font-family:var(--mono);font-size:11px;color:var(--chalk-muted);}
+.thumb-remove{
+  position:absolute;top:-8px;right:-8px;
+  width:22px;height:22px;border-radius:50%;
+  background:var(--pen-red);color:#fff;border:none;
+  font-size:13px;line-height:20px;cursor:pointer;
+  font-family:var(--mono);
+}
+
+.btn-extract{
+  margin-top:20px;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  background:var(--chalk-white);
+  color:var(--chalk-bg-deep);
+  font-family:var(--mono);
+  font-weight:500;
+  font-size:13.5px;
+  border:none;
+  border-radius:8px;
+  padding:12px 22px;
+  cursor:pointer;
+  transition:transform .1s, box-shadow .15s;
+}
+.btn-extract:hover{box-shadow:0 4px 16px rgba(255,255,255,.18);}
+.btn-extract:disabled{opacity:.4;cursor:not-allowed;}
+.btn-extract:active{transform:scale(.97);}
+
+.status-line{
+  font-family:var(--mono);
+  font-size:12.5px;
+  color:var(--chalk-muted);
+  margin-top:16px;
+  min-height:18px;
+}
+.status-line.error{color:#e8a39c;}
+.dots::after{content:'';animation:dotting 1.2s steps(4,end) infinite;}
+@keyframes dotting{0%,20%{content:'.'}40%{content:'..'}60%{content:'...'}80%,100%{content:''}}
+
+/* ---------- SECCIÓN PAPEL ---------- */
+.paper-section{
+  max-width:760px;
+  margin:0 auto;
+  padding:40px 24px 100px;
+  display:none;
+}
+.paper-section.visible{display:block;}
+.panel-label{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+  margin:0 0 10px;
+}
+.meta-card{
+  background:#fff;
+  border:1px solid var(--paper-edge);
+  border-radius:10px;
+  padding:18px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:28px;
+}
+.meta-field label{
+  display:block;
+  font-family:var(--mono);
+  font-size:10.5px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--ink-soft);
+  margin-bottom:5px;
+}
+.meta-field input{
+  width:100%;
+  border:none;
+  border-bottom:1px solid var(--paper-edge);
+  font-family:var(--serif-ui);
+  font-size:14px;
+  padding:4px 2px 6px;
+  background:transparent;
+  color:var(--ink);
+}
+.meta-field input:focus{outline:none;border-bottom-color:var(--pen-red);}
+.logo-field{grid-column:1 / -1;}
+.logo-upload{display:flex;align-items:center;gap:12px;}
+.logo-preview{
+  width:56px;height:56px;flex-shrink:0;
+  border:1px dashed var(--paper-edge);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:9px;color:var(--ink-soft);
+  overflow:hidden;text-align:center;line-height:1.2;
+}
+.logo-preview img{width:100%;height:100%;object-fit:contain;}
+.logo-btn{
+  font-family:var(--mono);font-size:11.5px;
+  background:#fff;border:1px solid var(--paper-edge);border-radius:6px;
+  padding:7px 12px;cursor:pointer;
+}
+#logoInput{display:none;}
+.logo-remove{
+  font-family:var(--mono);font-size:11px;background:none;border:none;
+  color:var(--pen-red);cursor:pointer;text-decoration:underline;padding:0;
+}
+
+.duda-banner{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:var(--highlight-soft);
+  border:1px solid #d9ad33;
+  border-radius:8px;
+  padding:10px 14px;
+  font-family:var(--mono);
+  font-size:12.5px;
+  color:#6b4f12;
+  margin-bottom:20px;
+}
+
+.sheet{
+  background:#fff;
+  border:1px solid var(--paper-edge);
+  box-shadow:0 8px 28px rgba(0,0,0,.06);
+  border-radius:4px;
+  padding:60px 56px;
+}
+.documento{
+  font-family:'Times New Roman',Georgia,serif;
+  font-size:15px;
+  line-height:2;
+  color:var(--ink);
+}
+.documento .titulo{
+  text-align:center;
+  font-weight:700;
+  margin:0 0 0;
+}
+.documento .contenido{
+  text-indent:1.27cm;
+  margin-top:18px;
+  white-space:pre-wrap;
+}
+.documento [contenteditable]:focus{outline:1px dashed #c8c2ad; outline-offset:4px;}
+
+mark.duda{
+  background:var(--highlight-soft);
+  border-bottom:2px dotted var(--pen-red);
+  cursor:pointer;
+  padding:0 2px;
+  position:relative;
+}
+.popover{
+  position:absolute;
+  z-index:20;
+  background:var(--chalk-bg-deep);
+  color:var(--chalk-white);
+  border-radius:8px;
+  padding:10px;
+  box-shadow:0 10px 26px rgba(0,0,0,.3);
+  font-family:var(--mono);
+  font-size:12px;
+  width:230px;
+  display:none;
+}
+.popover.show{display:block;}
+.popover p{margin:0 0 8px;color:var(--chalk-muted);}
+.popover input{
+  width:100%;
+  font-family:var(--serif-ui);
+  font-size:13px;
+  padding:6px 8px;
+  border-radius:5px;
+  border:none;
+  margin-bottom:8px;
+}
+.popover button{
+  width:100%;
+  background:var(--pen-red);
+  color:#fff;
+  border:none;
+  border-radius:5px;
+  padding:7px;
+  font-family:var(--mono);
+  font-size:11.5px;
+  cursor:pointer;
+}
+
+.bottom-bar{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(6px);
+  border-top:1px solid var(--paper-edge);
+  padding:14px 24px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  z-index:10;
+}
+.btn-pdf{
+  background:var(--ink);
+  color:#fff;
+  font-family:var(--mono);
+  font-size:13px;
+  border:none;
+  border-radius:8px;
+  padding:12px 26px;
+  cursor:pointer;
+}
+.btn-pdf:hover{background:#000;}
+.bottom-note{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);}
+
+@media(max-width:560px){
+  .sheet{padding:36px 22px;}
+  .meta-card{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<section class="chalk">
+  <div class="chalk-inner">
+    <p class="eyebrow">Prototipo · foto a documento APA</p>
+    <h1 class="headline">De tu cuaderno<br>al documento APA</h1>
+    <p class="sub">Sacá una foto de tu cuestionario escrito a mano. La IA lee el título y la respuesta, y los convierte en un documento con formato APA 7 listo para subir a la plataforma.</p>
+
+    <div class="steps">
+      <span class="step active" id="step1">1 · Foto</span>
+      <span class="arrow">→</span>
+      <span class="step" id="step2">2 · Lectura IA</span>
+      <span class="arrow">→</span>
+      <span class="step" id="step3">3 · Revisión</span>
+      <span class="arrow">→</span>
+      <span class="step" id="step4">4 · PDF APA</span>
+    </div>
+
+    <div class="upload-box" id="uploadBox">
+      <label class="upload-label" for="fileInput">📷 Agregar foto de una página</label>
+      <input type="file" id="fileInput" accept="image/*" capture="environment">
+      <p class="upload-hint">Sacá una foto por cada página de tu cuestionario, en orden, y agregalas todas antes de leerlas.</p>
+      <div class="thumb-row" id="thumbRow" style="display:none;"></div>
+      <div>
+        <button class="btn-extract" id="extractBtn" disabled>Leer documento con IA →</button>
+      </div>
+      <p class="status-line" id="statusLine"></p>
+    </div>
+  </div>
+</section>
+
+<section class="paper-section" id="paperSection">
+  <p class="panel-label">Datos del trabajo</p>
+  <div class="meta-card">
+    <div class="meta-field logo-field">
+      <label>Logo del instituto (opcional)</label>
+      <div class="logo-upload">
+        <div class="logo-preview" id="logoPreview">Sin logo</div>
+        <label class="logo-btn" for="logoInput">Subir logo</label>
+        <input type="file" id="logoInput" accept="image/*">
+        <button class="logo-remove" id="logoRemoveBtn" style="display:none;">Quitar</button>
+      </div>
+    </div>
+    <div class="meta-field"><label>Nombre del instituto</label><input id="metaInstituto" placeholder="Ej. Instituto Tecnológico..."></div>
+    <div class="meta-field"><label>Escuela</label><input id="metaEscuela" placeholder="Ej. Escuela de Informática"></div>
+    <div class="meta-field"><label>Matrícula</label><input id="metaMatricula" placeholder="Ej. 2023-0145"></div>
+    <div class="meta-field"><label>Participante</label><input id="metaParticipante" placeholder="Nombre del estudiante"></div>
+    <div class="meta-field"><label>Tema</label><input id="metaTema" placeholder="Tema del trabajo"></div>
+    <div class="meta-field"><label>Fecha</label><input id="metaFecha" placeholder="DD/MM/AAAA"></div>
+  </div>
+
+  <div class="duda-banner" id="dudaBanner" style="display:none;">
+    ✏️ <span id="dudaCount">0</span> palabra(s) que la IA no pudo leer con certeza. Tocalas para confirmarlas o corregirlas antes de descargar.
+  </div>
+
+  <p class="panel-label">Vista previa del documento (formato APA 7)</p>
+  <div class="sheet">
+    <div class="documento">
+      <p class="titulo" id="docTitulo" contenteditable="true">El título aparecerá aquí</p>
+      <p class="contenido" id="docContenido" contenteditable="true">El contenido aparecerá aquí después de leer la imagen.</p>
+    </div>
+  </div>
+</section>
+
+<div class="bottom-bar" id="bottomBar" style="display:none;">
+  <button class="btn-pdf" id="pdfBtn">Descargar PDF (APA 7)</button>
+  <span class="bottom-note">Se genera en tu navegador, no se guarda en ningún servidor.</span>
+</div>
+
+<div class="popover" id="popover">
+  <p>La IA no está segura de esta palabra. Confirmá o corregí:</p>
+  <input id="popoverInput">
+  <button id="popoverBtn">Confirmar</button>
+</div>
+
+<!-- bloque oculto usado solo para generar el PDF con formato y márgenes APA exactos -->
+<div id="pdfRoot" style="position:absolute;left:-9999px;top:0;width:21.59cm;">
+  <div style="page-break-after:always;height:27.94cm;padding:3cm 2.54cm 0;font-family:'Times New Roman',serif;font-size:12pt;line-height:1.5;text-align:center;">
+    <img id="pdfLogo" style="max-height:2.8cm;margin-bottom:0.6cm;display:none;">
+    <p id="pdfInstituto" style="font-weight:700;font-size:14pt;margin:0 0 4px;"></p>
+    <p id="pdfEscuela" style="margin:0 0 50px;"></p>
+    <p style="font-weight:700;letter-spacing:.05em;margin:0 0 6px;">TEMA</p>
+    <p id="pdfTema" style="font-weight:700;font-size:13pt;margin:0 0 70px;"></p>
+    <p style="font-weight:700;margin:0 0 2px;">Participante</p>
+    <p id="pdfParticipante" style="margin:0 0 16px;"></p>
+    <p style="font-weight:700;margin:0 0 2px;">Matrícula</p>
+    <p id="pdfMatricula" style="margin:0 0 16px;"></p>
+    <p id="pdfFecha" style="margin-top:40px;"></p>
+  </div>
+  <div style="padding:2.54cm;font-family:'Times New Roman',serif;font-size:12pt;line-height:2;">
+    <p id="pdfTituloRepetido" style="text-align:center;font-weight:700;"></p>
+    <p id="pdfContenido" style="text-indent:1.27cm;white-space:pre-wrap;"></p>
+  </div>
+</div>
+
+<script>
+let paginas = [], dudas = [], logoDataUrl = null;
+
+const fileInput = document.getElementById('fileInput');
+const uploadBox = document.getElementById('uploadBox');
+const thumbRow = document.getElementById('thumbRow');
+const extractBtn = document.getElementById('extractBtn');
+const logoInput = document.getElementById('logoInput');
+const logoPreview = document.getElementById('logoPreview');
+const logoRemoveBtn = document.getElementById('logoRemoveBtn');
+const statusLine = document.getElementById('statusLine');
+const paperSection = document.getElementById('paperSection');
+const bottomBar = document.getElementById('bottomBar');
+const docTitulo = document.getElementById('docTitulo');
+const docContenido = document.getElementById('docContenido');
+const dudaBanner = document.getElementById('dudaBanner');
+const dudaCount = document.getElementById('dudaCount');
+const popover = document.getElementById('popover');
+const popoverInput = document.getElementById('popoverInput');
+const popoverBtn = document.getElementById('popoverBtn');
+
+function setStep(n){
+  for(let i=1;i<=4;i++){
+    document.getElementById('step'+i).classList.toggle('active', i<=n);
+  }
+}
+
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    paginas.push({
+      base64: reader.result.split(',')[1],
+      mediaType: file.type || 'image/jpeg',
+      previewUrl: reader.result
+    });
+    renderThumbs();
+    uploadBox.classList.add('has-image');
+    extractBtn.disabled = false;
+    statusLine.textContent = '';
+    statusLine.classList.remove('error');
+    fileInput.value = '';
+  };
+  reader.readAsDataURL(file);
+});
+
+function renderThumbs(){
+  thumbRow.innerHTML = '';
+  thumbRow.style.display = paginas.length ? 'flex' : 'none';
+  paginas.forEach((p, i) => {
+    const item = document.createElement('div');
+    item.className = 'thumb-item';
+    item.innerHTML = '<button class="thumb-remove" data-i="'+i+'" title="Quitar">×</button>'
+      + '<img src="'+p.previewUrl+'">'
+      + '<span class="thumb-label">Página '+(i+1)+'</span>';
+    thumbRow.appendChild(item);
+  });
+  thumbRow.querySelectorAll('.thumb-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      paginas.splice(Number(btn.dataset.i), 1);
+      renderThumbs();
+      extractBtn.disabled = paginas.length === 0;
+    });
+  });
+}
+
+logoInput.addEventListener('change', () => {
+  const file = logoInput.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    logoDataUrl = reader.result;
+    logoPreview.innerHTML = '<img src="'+logoDataUrl+'">';
+    logoRemoveBtn.style.display = 'inline';
+  };
+  reader.readAsDataURL(file);
+});
+
+logoRemoveBtn.addEventListener('click', () => {
+  logoDataUrl = null;
+  logoInput.value = '';
+  logoPreview.innerHTML = 'Sin logo';
+  logoRemoveBtn.style.display = 'none';
+});
+
+extractBtn.addEventListener('click', async () => {
+  if(paginas.length === 0) return;
+  extractBtn.disabled = true;
+  setStep(2);
+  statusLine.classList.remove('error');
+  statusLine.innerHTML = 'Leyendo ' + paginas.length + ' página(s)<span class="dots"></span>';
+
+  const systemPrompt = `Eres un transcriptor literal de texto manuscrito de un cuaderno escolar. Vas a recibir una o varias imágenes que son fotos de las páginas de un mismo cuestionario manuscrito, en el orden en que fueron tomadas. Tu única tarea es leer todas las imágenes y transcribir EXACTAMENTE lo que está escrito, combinando el contenido de todas las páginas en un solo documento continuo, sin corregir ortografía, sin completar ideas y sin inventar ningún contenido que no esté visible en las imágenes.
+
+Identificá dos partes del texto manuscrito combinando todas las páginas:
+1. El título o la pregunta del cuestionario (normalmente al inicio de la primera página, puede estar subrayado, numerado o en letra más grande).
+2. El contenido o la respuesta completa, uniendo el texto de todas las páginas en el orden en que se muestran.
+
+Si hay palabras o fragmentos que no podés leer con total certeza, NO los inventes ni los completes con suposiciones. Transcribí tu mejor estimación pero marcala usando el formato {{N}} dentro del texto (donde N es un número empezando en 0), y agregá esa estimación a la lista "dudas".
+
+Respondé ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin explicaciones, sin backticks de markdown, con esta estructura exacta:
+{"titulo": "texto del título, con marcadores {{N}} si aplica", "contenido": "texto del contenido completo combinando todas las páginas, con marcadores {{N}} si aplica", "dudas": [{"id": 0, "estimado": "palabra o frase corta estimada"}]}
+
+Si no hay ninguna duda, "dudas" debe ser un arreglo vacío.`;
+
+  const contenidoMensaje = [{type:"text", text: systemPrompt}];
+  paginas.forEach((p, i) => {
+    contenidoMensaje.push({type:"text", text: 'Página ' + (i+1) + ' de ' + paginas.length + ':'});
+    contenidoMensaje.push({type:"image", source:{type:"base64", media_type: p.mediaType, data: p.base64}});
+  });
+
+  try{
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        messages: [{ role:"user", content: contenidoMensaje }]
+      })
+    });
+    const data = await response.json();
+    let text = (data.content || []).map(b => b.text || '').join('').trim();
+    text = text.replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+    const parsed = JSON.parse(text);
+
+    dudas = parsed.dudas || [];
+    docTitulo.innerHTML = insertarMarcadores(parsed.titulo || '');
+    docContenido.innerHTML = insertarMarcadores(parsed.contenido || '');
+
+    const temaInput = document.getElementById('metaTema');
+    if(!temaInput.value) temaInput.value = docTitulo.textContent;
+
+    actualizarBannerDudas();
+    attachDudaHandlers();
+
+    setStep(3);
+    statusLine.textContent = 'Listo. Revisá el documento abajo.';
+    paperSection.classList.add('visible');
+    bottomBar.style.display = 'flex';
+    paperSection.scrollIntoView({behavior:'smooth'});
+  }catch(err){
+    statusLine.classList.add('error');
+    statusLine.textContent = 'No se pudo leer la imagen. Probá con una foto más clara o intentá de nuevo. (' + err.message + ')';
+  }finally{
+    extractBtn.disabled = false;
+  }
+});
+
+function insertarMarcadores(str){
+  return str.replace(/\{\{(\d+)\}\}/g, (m, id) => {
+    const d = dudas.find(x => String(x.id) === id);
+    const palabra = d ? d.estimado : '___';
+    return `<mark class="duda" data-id="${id}">${palabra}</mark>`;
+  });
+}
+
+function actualizarBannerDudas(){
+  const restantes = document.querySelectorAll('mark.duda').length;
+  if(restantes > 0){
+    dudaBanner.style.display = 'flex';
+    dudaCount.textContent = restantes;
+  } else {
+    dudaBanner.style.display = 'none';
+  }
+}
+
+function attachDudaHandlers(){
+  document.querySelectorAll('mark.duda').forEach(mark => {
+    mark.addEventListener('click', (e) => {
+      const rect = mark.getBoundingClientRect();
+      popover.style.left = (window.scrollX + rect.left) + 'px';
+      popover.style.top = (window.scrollY + rect.bottom + 8) + 'px';
+      popover.classList.add('show');
+      popoverInput.value = mark.textContent;
+      popoverBtn.onclick = () => {
+        mark.textContent = popoverInput.value || mark.textContent;
+        mark.classList.remove('duda');
+        mark.style.background = 'transparent';
+        mark.style.borderBottom = 'none';
+        mark.replaceWith(document.createTextNode(mark.textContent));
+        popover.classList.remove('show');
+        actualizarBannerDudas();
+      };
+      popoverInput.focus();
+    });
+  });
+}
+
+document.addEventListener('click', (e) => {
+  if(!popover.contains(e.target) && !e.target.classList.contains('duda')){
+    popover.classList.remove('show');
+  }
+});
+
+document.getElementById('pdfBtn').addEventListener('click', async () => {
+  setStep(4);
+  const pdfBtn = document.getElementById('pdfBtn');
+  const instituto = document.getElementById('metaInstituto').value || 'Nombre del instituto';
+  const escuela = document.getElementById('metaEscuela').value || '';
+  const matricula = document.getElementById('metaMatricula').value || '';
+  const participante = document.getElementById('metaParticipante').value || 'Nombre del participante';
+  const tema = document.getElementById('metaTema').value || docTitulo.textContent;
+  const fecha = document.getElementById('metaFecha').value || '';
+
+  document.getElementById('pdfInstituto').textContent = instituto;
+  document.getElementById('pdfEscuela').textContent = escuela;
+  document.getElementById('pdfTema').textContent = tema;
+  document.getElementById('pdfParticipante').textContent = participante;
+  document.getElementById('pdfMatricula').textContent = matricula;
+  document.getElementById('pdfFecha').textContent = fecha;
+
+  const pdfLogo = document.getElementById('pdfLogo');
+  if(logoDataUrl){
+    pdfLogo.src = logoDataUrl;
+    pdfLogo.style.display = 'inline-block';
+  } else {
+    pdfLogo.style.display = 'none';
+  }
+
+  document.getElementById('pdfTituloRepetido').textContent = docTitulo.textContent;
+  document.getElementById('pdfContenido').textContent = docContenido.textContent;
+
+  const opt = {
+    margin: 0,
+    filename: 'documento-apa7.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'cm', format: 'letter', orientation: 'portrait' },
+    pagebreak: { mode: 'css' }
+  };
+
+  pdfBtn.disabled = true;
+  const textoOriginal = pdfBtn.textContent;
+  pdfBtn.textContent = 'Generando PDF...';
+
+  try{
+    const pdfBlob = await html2pdf().set(opt).from(document.getElementById('pdfRoot')).toPdf().output('blob');
+    const url = URL.createObjectURL(pdfBlob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'documento-apa7.pdf';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    let fallback = document.getElementById('pdfFallbackLink');
+    if(!fallback){
+      fallback = document.createElement('a');
+      fallback.id = 'pdfFallbackLink';
+      fallback.target = '_blank';
+      fallback.className = 'bottom-note';
+      fallback.style.textDecoration = 'underline';
+      fallback.style.cursor = 'pointer';
+      document.querySelector('.bottom-bar').appendChild(fallback);
+    }
+    fallback.href = url;
+    fallback.download = 'documento-apa7.pdf';
+    fallback.textContent = '¿No se descargó solo? Tocá aquí para abrirlo';
+
+    pdfBtn.textContent = textoOriginal;
+  }catch(err){
+    pdfBtn.textContent = 'Reintentar PDF';
+    statusLine.classList.add('error');
+    alert('No se pudo generar el PDF: ' + err.message);
+  }finally{
+    pdfBtn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
