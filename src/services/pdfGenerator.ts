@@ -25,12 +25,9 @@ function splitIntoParagraphs(text: string): string[] {
   return text.split('\n').map((p) => p.trim()).filter((p) => p.length > 0)
 }
 
-function addHeader(doc: jsPDF, runningHead: string) {
+function addHeader(doc: jsPDF) {
   doc.setFont('Times', 'normal')
   doc.setFontSize(10)
-  // Running head — left
-  doc.text(runningHead, MARGIN, HEADER_Y)
-  // Page number — right
   doc.text(String(doc.getCurrentPageInfo().pageNumber), PAGE_W - MARGIN, HEADER_Y, { align: 'right' })
 }
 
@@ -41,7 +38,6 @@ function addWrappedText(
   y: number,
   maxW: number,
   indent: number,
-  runningHead: string,
 ): number {
   const paragraphs = splitIntoParagraphs(text)
   let cursorY = y
@@ -50,7 +46,7 @@ function addWrappedText(
     for (let i = 0; i < lines.length; i++) {
       if (cursorY + LINE_H > PAGE_H - MARGIN) {
         doc.addPage()
-        addHeader(doc, runningHead)
+        addHeader(doc)
         cursorY = MARGIN
       }
       doc.text(lines[i] as string, x + (i === 0 ? indent : 0), cursorY)
@@ -61,8 +57,6 @@ function addWrappedText(
 }
 
 export function generatePdf(data: PdfData): void {
-  const runningHead = data.titulo.substring(0, 50).toUpperCase()
-
   const doc = new jsPDF({
     unit: 'mm',
     format: 'letter',
@@ -70,7 +64,7 @@ export function generatePdf(data: PdfData): void {
   })
 
   // === PAGE 1 — cover ===
-  addHeader(doc, runningHead)
+  addHeader(doc)
   let y = MARGIN + 30
 
   doc.setFont('Times', 'normal')
@@ -108,6 +102,9 @@ export function generatePdf(data: PdfData): void {
   doc.text(data.instituto, PAGE_W / 2, y, { align: 'center' })
   y += 8
 
+  doc.setFont('Times', 'bold')
+  doc.text('Escuela', PAGE_W / 2, y, { align: 'center' })
+  y += 6
   doc.setFont('Times', 'normal')
   doc.setFontSize(12)
   doc.text(data.escuela, PAGE_W / 2, y, { align: 'center' })
@@ -146,22 +143,31 @@ export function generatePdf(data: PdfData): void {
 
   // === PAGE 2+ — body ===
   doc.addPage()
-  addHeader(doc, runningHead)
+  addHeader(doc)
   y = MARGIN
 
   // Title — centered bold (APA Level 1 heading)
   doc.setFont('Times', 'bold')
   doc.setFontSize(12)
-  y = addWrappedText(doc, data.titulo, MARGIN, y, CONTENT_W, 0, runningHead)
+  const tituloLines = doc.splitTextToSize(data.titulo, CONTENT_W)
+  for (const line of tituloLines) {
+    if (y + LINE_H > PAGE_H - MARGIN) {
+      doc.addPage()
+      addHeader(doc)
+      y = MARGIN
+    }
+    doc.text(line, PAGE_W / 2, y, { align: 'center' })
+    y += LINE_H
+  }
   y += LINE_H
 
   // Sections — each with bold heading then content
   for (const sec of data.secciones) {
     doc.setFont('Times', 'bold')
-    y = addWrappedText(doc, sec.titulo, MARGIN, y, CONTENT_W, 0, runningHead)
+    y = addWrappedText(doc, sec.titulo, MARGIN, y, CONTENT_W, 0)
 
     doc.setFont('Times', 'normal')
-    y = addWrappedText(doc, sec.contenido, MARGIN, y, CONTENT_W, FIRST_LINE_INDENT, runningHead)
+    y = addWrappedText(doc, sec.contenido, MARGIN, y, CONTENT_W, FIRST_LINE_INDENT)
     y += LINE_H
   }
 
