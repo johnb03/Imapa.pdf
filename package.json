@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "cd server && npm install",
+    "start": "cd server && node index.js"
   },
   "dependencies": {
     "jspdf": "^4.2.1",
