@@ -1,35 +1,35 @@
 <script setup lang="ts">
-import type { Pagina } from '../types'
-import StepIndicator from './StepIndicator.vue'
-import type { Step } from '../types'
+import type { Pagina } from "../types";
+import StepIndicator from "./StepIndicator.vue";
+import type { Step } from "../types";
 
 const props = defineProps<{
-  paginas: Pagina[]
-  step: Step
-  loading: boolean
-  error: string
-}>()
+  paginas: Pagina[];
+  step: Step;
+  loading: boolean;
+  error: string;
+}>();
 
 const emit = defineEmits<{
-  agregar: [file: File]
-  quitar: [index: number]
-  leer: []
-}>()
+  agregar: [file: File];
+  quitar: [index: number];
+  leer: [];
+}>();
 
 function handleFile(e: Event) {
-  const input = e.target as HTMLInputElement
-  const files = input?.files
+  const input = e.target as HTMLInputElement;
+  const files = input?.files;
   if (files && files.length > 0) {
     for (const file of Array.from(files)) {
-      emit('agregar', file)
+      emit("agregar", file);
     }
-    input.value = ''
+    input.value = "";
   }
 }
 
 function triggerFileInput() {
-  const input = document.getElementById('fileInput') as HTMLInputElement
-  input?.click()
+  const input = document.getElementById("fileInput") as HTMLInputElement;
+  input?.click();
 }
 </script>
 
@@ -37,7 +37,8 @@ function triggerFileInput() {
   <section class="chalk">
     <div class="chalk-inner">
       <p class="eyebrow">Prototipo · foto a documento APA</p>
-      <h1 class="headline">De tu cuaderno<br>al documento APA</h1>
+      <img src="/image/logo_imapaToPdf.svg" alt="Imapa.pdf" class="hero-logo" />
+      <h1 class="headline">De tu cuaderno<br />al documento APA</h1>
       <p class="sub">
         Sacá una foto de tu cuestionario escrito a mano. La IA lee el título y
         la respuesta, y los convierte en un documento con formato APA 7 listo
@@ -54,7 +55,6 @@ function triggerFileInput() {
           type="file"
           id="fileInput"
           accept="image/*"
-          capture="environment"
           multiple
           @change="handleFile"
         />
@@ -65,7 +65,11 @@ function triggerFileInput() {
 
         <div v-if="paginas.length > 0" class="thumb-row">
           <div v-for="(p, i) in paginas" :key="i" class="thumb-item">
-            <button class="thumb-remove" @click="emit('quitar', i)" title="Quitar">
+            <button
+              class="thumb-remove"
+              @click="emit('quitar', i)"
+              title="Quitar"
+            >
               ×
             </button>
             <img :src="p.previewUrl" />
@@ -79,20 +83,14 @@ function triggerFileInput() {
             :disabled="paginas.length === 0 || loading"
             @click="emit('leer')"
           >
-            {{ loading ? 'Leyendo...' : 'Leer documento con IA →' }}
+            {{ loading ? "Leyendo..." : "Leer documento con IA →" }}
           </button>
         </div>
 
-        <p
-          v-if="loading"
-          class="status-line"
-        >
+        <p v-if="loading" class="status-line">
           Leyendo {{ paginas.length }} página(s)<span class="dots"></span>
         </p>
-        <p
-          v-if="error && !loading"
-          class="status-line error"
-        >
+        <p v-if="error && !loading" class="status-line error">
           {{ error }}
         </p>
       </div>
@@ -102,8 +100,17 @@ function triggerFileInput() {
 
 <style scoped>
 .chalk {
-  background: radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.04), transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.03), transparent 45%),
+  background:
+    radial-gradient(
+      circle at 20% 15%,
+      rgba(255, 255, 255, 0.04),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 80% 70%,
+      rgba(255, 255, 255, 0.03),
+      transparent 45%
+    ),
     linear-gradient(180deg, var(--chalk-bg), var(--chalk-bg-deep));
   color: var(--chalk-white);
   padding: 48px 24px 64px;
@@ -120,6 +127,17 @@ function triggerFileInput() {
   text-transform: uppercase;
   color: var(--chalk-muted);
   margin: 0 0 14px;
+}
+.hero-logo {
+  display: block;
+  margin: 0 auto 16px;
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  padding: 5sapx;
+  background: rgba(255, 255, 255, 0.88);
+  border-radius: 10%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 .headline {
   font-family: var(--hand);
@@ -140,7 +158,9 @@ function triggerFileInput() {
   border-radius: 14px;
   padding: 28px;
   text-align: center;
-  transition: border-color 0.2s, background 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
 }
 .upload-box.has-image {
   border-style: solid;
@@ -161,7 +181,9 @@ function triggerFileInput() {
   padding: 11px 20px;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
+  transition:
+    background 0.15s,
+    transform 0.1s;
 }
 .upload-label:hover {
   background: var(--pen-red-dark);
@@ -228,7 +250,9 @@ function triggerFileInput() {
   border-radius: 8px;
   padding: 12px 22px;
   cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.15s;
+  transition:
+    transform 0.1s,
+    box-shadow 0.15s;
 }
 .btn-extract:hover {
   box-shadow: 0 4px 16px rgba(255, 255, 255, 0.18);
@@ -255,9 +279,19 @@ function triggerFileInput() {
   animation: dotting 1.2s steps(4, end) infinite;
 }
 @keyframes dotting {
-  0%, 20% { content: "."; }
-  40% { content: ".."; }
-  60% { content: "..."; }
-  80%, 100% { content: ""; }
+  0%,
+  20% {
+    content: ".";
+  }
+  40% {
+    content: "..";
+  }
+  60% {
+    content: "...";
+  }
+  80%,
+  100% {
+    content: "";
+  }
 }
 </style>
