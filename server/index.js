@@ -88,7 +88,7 @@ Si no hay secciones, "secciones" debe ser un arreglo vacío. Si no hay ninguna d
 })
 
 // SPA fallback: non-API routes serve the app shell
-app.get('*', (req, res) => {
+app.use((req, res, next) => {
   if (req.path.startsWith('/api')) return res.status(404).json({ error: 'not found' })
   res.sendFile('index.html', { root: distPath })
 })
