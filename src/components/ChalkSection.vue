@@ -8,12 +8,14 @@ const props = defineProps<{
   step: Step;
   loading: boolean;
   error: string;
+  imageMode?: boolean;
 }>();
 
 const emit = defineEmits<{
   agregar: [file: File];
   quitar: [index: number];
   leer: [];
+  modoImagen: [];
 }>();
 
 function handleFile(e: Event) {
@@ -45,7 +47,7 @@ function triggerFileInput() {
         para subir a la plataforma.
       </p>
 
-      <StepIndicator :step="step" />
+      <StepIndicator :step="step" :image-mode="imageMode" />
 
       <div class="upload-box" :class="{ 'has-image': paginas.length > 0 }">
         <label class="upload-label" @click.prevent="triggerFileInput">
@@ -78,13 +80,22 @@ function triggerFileInput() {
         </div>
 
         <div>
-          <button
-            class="btn-extract"
-            :disabled="paginas.length === 0 || loading"
-            @click="emit('leer')"
-          >
-            {{ loading ? "Leyendo..." : "Leer documento con IA →" }}
-          </button>
+          <div class="btn-row">
+            <button
+              class="btn-extract"
+              :disabled="paginas.length === 0 || loading"
+              @click="emit('leer')"
+            >
+              {{ loading ? "Leyendo..." : "Leer documento con IA →" }}
+            </button>
+            <button
+              class="btn-image"
+              :disabled="paginas.length === 0"
+              @click="emit('modoImagen')"
+            >
+              Insertar imágenes en PDF
+            </button>
+          </div>
         </div>
 
         <p v-if="loading" class="status-line">
@@ -236,8 +247,14 @@ function triggerFileInput() {
   cursor: pointer;
   font-family: var(--mono);
 }
-.btn-extract {
+.btn-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
   margin-top: 20px;
+  flex-wrap: wrap;
+}
+.btn-extract {
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -262,6 +279,33 @@ function triggerFileInput() {
   cursor: not-allowed;
 }
 .btn-extract:active {
+  transform: scale(0.97);
+}
+.btn-image {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  color: var(--chalk-white);
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 13.5px;
+  border: 2px solid var(--chalk-white);
+  border-radius: 8px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition:
+    transform 0.1s,
+    box-shadow 0.15s;
+}
+.btn-image:hover {
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.18);
+}
+.btn-image:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.btn-image:active {
   transform: scale(0.97);
 }
 .status-line {

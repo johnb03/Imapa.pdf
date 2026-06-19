@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { generatePdf } from './services/pdfGenerator'
+import { generatePdf, generatePdfWithImages } from './services/pdfGenerator'
 import { useDocument } from './composables/useDocument'
 import ChalkSection from './components/ChalkSection.vue'
 import MetaForm from './components/MetaForm.vue'
@@ -19,11 +19,13 @@ const {
   step,
   loading,
   error,
+  imageMode,
   dudasPendientes,
   agregarPagina,
   quitarPagina,
   leerDocumento,
   corregirDuda,
+  setImageMode,
   setStep,
 } = useDocument()
 
@@ -41,6 +43,10 @@ function onQuitarPagina(index: number) {
 
 function onLeer() {
   leerDocumento()
+}
+
+function onModoImagen() {
+  setImageMode(true)
 }
 
 function onCorregir(dudaId: number) {
@@ -107,7 +113,7 @@ function onGenerarPdf() {
   const faltantes: string[] = []
   if (!meta.instituto.trim()) faltantes.push('Instituto')
   if (!meta.participante.trim()) faltantes.push('Participante')
-  if (!meta.tema.trim() && !docTitulo.value.trim()) faltantes.push('Tema')
+  if (!meta.tema.trim()) faltantes.push('Tema')
 
   if (faltantes.length > 0) {
     pdfError.value = `Faltan campos obligatorios: ${faltantes.join(', ')}`
@@ -115,8 +121,8 @@ function onGenerarPdf() {
   }
 
   setStep(4)
-  const tituloFinal = meta.tema || resolverMarcadores(docTitulo.value).trim()
-  generatePdf({
+  const tituloFinal = meta.tema.trim()
+  const pdfData = {
     logo: logoDataUrl.value,
     instituto: meta.instituto,
     escuela: meta.escuela || '',
@@ -125,8 +131,14 @@ function onGenerarPdf() {
     matricula: meta.matricula || '',
     fecha: meta.fecha || '',
     titulo: tituloFinal,
-    secciones: resolverSecciones(secciones.value),
-  })
+    secciones: imageMode.value ? [] : resolverSecciones(secciones.value),
+  }
+
+  if (imageMode.value) {
+    generatePdfWithImages(pdfData, paginas.value)
+  } else {
+    generatePdf(pdfData)
+  }
 }
 </script>
 
@@ -137,29 +149,37 @@ function onGenerarPdf() {
       :step="step"
       :loading="loading"
       :error="error"
+      :image-mode="imageMode"
       @agregar="onAgregarPagina"
       @quitar="onQuitarPagina"
       @leer="onLeer"
+      @modo-imagen="onModoImagen"
     />
 
-    <section v-if="step >= 3 && secciones.length" class="paper-section visible">
+    <section v-if="step >= 3 && (imageMode || secciones.length)" class="paper-section visible">
       <MetaForm
         v-model="meta"
         :logo-data-url="logoDataUrl"
         @logo-cambio="onLogoCambio"
       />
 
-      <DudaBanner :pendientes="dudasPendientes" />
+      <DudaBanner v-if="!imageMode" :pendientes="dudasPendientes" />
 
       <DocumentPreview
-        :titulo="meta.tema || resolverMarcadores(docTitulo.value)"
+        v-if="!imageMode"
+        :titulo="meta.tema || resolverMarcadores(docTitulo)"
         :secciones="secciones"
         :dudas="dudas"
         @corregir="onCorregir"
       />
+
+      <p v-if="imageMode" class="image-mode-note">
+        Las {{ paginas.length }} imagen(es) se insertarán directamente en el PDF, cada una en su propia página con el encabezado "Desarrollo del ejercicio".
+      </p>
     </section>
 
     <DudaPopover
+      v-if="!imageMode"
       :show="popover.show"
       :texto="popover.texto"
       :x="popover.x"
@@ -168,12 +188,12 @@ function onGenerarPdf() {
       @cerrar="onCerrarPopover"
     />
 
-    <div v-if="step >= 3 && secciones.length" class="pdf-footer">
+    <div v-if="step >= 3 && (imageMode || secciones.length)" class="pdf-footer">
       <p v-if="pdfError" class="pdf-error">{{ pdfError }}</p>
       <PdfBar
         :meta="meta"
-        :titulo="meta.tema || resolverMarcadores(docTitulo.value)"
-        :secciones="secciones"
+        :titulo="meta.tema || resolverMarcadores(docTitulo)"
+        :secciones="imageMode ? [] : secciones"
         :logo-data-url="logoDataUrl"
         @generar="onGenerarPdf"
       />
@@ -232,6 +252,17 @@ body {
   border-radius: 6px;
   padding: 8px 12px;
   margin: 0 24px 8px;
+  text-align: center;
+}
+.image-mode-note {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-soft);
+  background: rgba(159, 179, 160, 0.1);
+  border: 1px solid var(--paper-edge);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 16px;
   text-align: center;
 }
 </style>

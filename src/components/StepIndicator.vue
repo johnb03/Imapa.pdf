@@ -1,14 +1,24 @@
 <script setup lang="ts">
 import type { Step } from '../types'
+import { computed } from 'vue'
 
-defineProps<{ step: Step }>()
+const props = defineProps<{ step: Step; imageMode?: boolean }>()
 
-const steps = [
-  { num: 1, label: 'Foto' },
-  { num: 2, label: 'Lectura IA' },
-  { num: 3, label: 'Revisión' },
-  { num: 4, label: 'PDF APA' },
-]
+const steps = computed(() => {
+  if (props.imageMode) {
+    return [
+      { num: 1, label: 'Foto' },
+      { num: 3, label: 'Datos' },
+      { num: 4, label: 'PDF APA' },
+    ]
+  }
+  return [
+    { num: 1, label: 'Foto' },
+    { num: 2, label: 'Lectura IA' },
+    { num: 3, label: 'Revisión' },
+    { num: 4, label: 'PDF APA' },
+  ]
+})
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf'
-import type { Seccion } from '../types'
+import type { Pagina, Seccion } from '../types'
 
 interface PdfData {
   logo: string | null
@@ -169,6 +169,128 @@ export function generatePdf(data: PdfData): void {
     doc.setFont('Times', 'normal')
     y = addWrappedText(doc, sec.contenido, MARGIN, y, CONTENT_W, FIRST_LINE_INDENT)
     y += LINE_H
+  }
+
+  doc.save('documento.pdf')
+}
+
+export function generatePdfWithImages(data: PdfData, paginas: Pagina[]): void {
+  const doc = new jsPDF({
+    unit: 'mm',
+    format: 'letter',
+    orientation: 'portrait',
+  })
+
+  // === PAGE 1 — cover ===
+  addHeader(doc)
+  let y = MARGIN + 30
+
+  doc.setFont('Times', 'normal')
+  doc.setFontSize(12)
+
+  // Logo with aspect ratio (max 40mm wide, 30mm tall)
+  if (data.logo) {
+    try {
+      const fmt = data.logo.startsWith('data:image/png') ? 'PNG' : 'JPEG'
+      const maxW = 40
+      const maxH = 30
+      let imgW = maxW
+      let imgH = maxH
+      const img = new Image()
+      img.src = data.logo
+      if (img.naturalWidth && img.naturalHeight) {
+        const aspect = img.naturalWidth / img.naturalHeight
+        if (aspect > maxW / maxH) {
+          imgW = maxW
+          imgH = maxW / aspect
+        } else {
+          imgH = maxH
+          imgW = maxH * aspect
+        }
+      }
+      doc.addImage(data.logo, fmt, PAGE_W / 2 - imgW / 2, y - 20, imgW, imgH)
+      y += Math.max(imgH, 15) + 10
+    } catch {
+      /* logo skip */
+    }
+  }
+
+  doc.setFont('Times', 'bold')
+  doc.setFontSize(14)
+  doc.text(data.instituto, PAGE_W / 2, y, { align: 'center' })
+  y += 8
+
+  doc.setFont('Times', 'bold')
+  doc.text('Escuela', PAGE_W / 2, y, { align: 'center' })
+  y += 6
+  doc.setFont('Times', 'normal')
+  doc.setFontSize(12)
+  doc.text(data.escuela, PAGE_W / 2, y, { align: 'center' })
+  y += 40
+
+  doc.setFont('Times', 'bold')
+  doc.text('TEMA', PAGE_W / 2, y, { align: 'center' })
+  y += 6
+
+  doc.setFontSize(13)
+  const temaLines = doc.splitTextToSize(data.tema, CONTENT_W)
+  for (const line of temaLines) {
+    doc.text(line, PAGE_W / 2, y, { align: 'center' })
+    y += 8
+  }
+  y += 50
+
+  doc.setFontSize(12)
+  doc.setFont('Times', 'bold')
+  doc.text('Participante', PAGE_W / 2, y, { align: 'center' })
+  y += 6
+  doc.setFont('Times', 'normal')
+  doc.text(data.participante, PAGE_W / 2, y, { align: 'center' })
+  y += 16
+  doc.setFont('Times', 'bold')
+  doc.text('Matrícula', PAGE_W / 2, y, { align: 'center' })
+  y += 6
+  doc.setFont('Times', 'normal')
+  if (data.matricula) {
+    doc.text(data.matricula, PAGE_W / 2, y, { align: 'center' })
+  }
+  y += 40
+  if (data.fecha) {
+    doc.text(data.fecha, PAGE_W / 2, y, { align: 'center' })
+  }
+
+  // === IMAGE PAGES ===
+  for (const pagina of paginas) {
+    doc.addPage()
+    addHeader(doc)
+
+    // Header "Desarrollo del ejercicio"
+    doc.setFont('Times', 'bold')
+    doc.setFontSize(12)
+    doc.text('Desarrollo del ejercicio', PAGE_W / 2, MARGIN + 10, { align: 'center' })
+
+    // Image — fit within margins, constrained to page
+    try {
+      const fmt = pagina.mediaType === 'image/png' ? 'PNG' : 'JPEG'
+      const maxW = CONTENT_W
+      const maxH = PAGE_H - 2 * MARGIN - 30
+      const imgW = maxW
+      const imgH = maxH
+      const imgX = PAGE_W / 2 - imgW / 2
+      const imgY = MARGIN + 20
+      doc.addImage(
+        `data:${pagina.mediaType};base64,${pagina.base64}`,
+        fmt,
+        imgX,
+        imgY,
+        imgW,
+        imgH,
+        undefined,
+        'FAST',
+      )
+    } catch {
+      // skip image if it fails to render
+    }
   }
 
   doc.save('documento.pdf')

@@ -11,6 +11,7 @@ export function useDocument() {
   const loading = ref(false)
   const error = ref('')
   const logoDataUrl = ref<string | null>(null)
+  const imageMode = ref(false)
 
   const meta = reactive<MetaData>({
     instituto: '',
@@ -50,8 +51,16 @@ export function useDocument() {
     paginas.value.splice(index, 1)
   }
 
+  function setImageMode(val: boolean) {
+    imageMode.value = val
+    if (val) {
+      step.value = 3
+    }
+  }
+
   async function leerDocumento() {
     if (paginas.value.length === 0) return
+    imageMode.value = false
     loading.value = true
     error.value = ''
     step.value = 2
@@ -99,11 +108,13 @@ export function useDocument() {
     step,
     loading,
     error,
+    imageMode,
     dudasPendientes,
     agregarPagina,
     quitarPagina,
     leerDocumento,
     corregirDuda,
+    setImageMode,
     setStep,
   }
 }

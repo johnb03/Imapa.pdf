@@ -11,7 +11,9 @@
 
 ## Cómo funciona
 
-**4 pasos, sin registro, todo en el navegador:**
+**Dos modos, sin registro, todo en el navegador:**
+
+### 📝 Modo transcripción (IA)
 
 1. **Fotografiá** cada página de tu cuestionario (varias fotos, en orden)
 2. **IA transcribe** — Gemini 3.1 Flash Lite lee el texto manuscrito y lo estructura en título + secciones
@@ -20,6 +22,14 @@
 
 > La IA **transcribe, no redacta**: no corrige ortografía, no completa ideas,
 > no inventa contenido que no esté en la foto. Si hay duda, la marca y te pregunta.
+
+### 📷 Modo imagen directa
+
+1. **Fotografiá** cada página de tu desarrollo manuscrito (álgebra, cálculos, gráficos)
+2. **Completá** los datos de carátula (instituto, participante, tema, etc.)
+3. **Descargá PDF** con las imágenes insertadas directamente, cada una en su propia página con el encabezado "Desarrollo del ejercicio"
+
+> Ideal para materias como matemáticas donde el profesor exige ver el desarrollo manuscrito. La imagen se coloca tal cual en el PDF, sin IA de por medio.
 
 ---
 
