@@ -56,7 +56,20 @@ function addWrappedText(
   return cursorY
 }
 
+function downloadBlob(blob: Blob, filename: string) {
+  console.log('downloadBlob called, blob size:', blob.size, 'type:', blob.type)
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
 export function generatePdf(data: PdfData): void {
+  console.log('generatePdf called')
   const doc = new jsPDF({
     unit: 'mm',
     format: 'letter',
@@ -108,7 +121,7 @@ export function generatePdf(data: PdfData): void {
   doc.setFont('Times', 'normal')
   doc.setFontSize(12)
   doc.text(data.escuela, PAGE_W / 2, y, { align: 'center' })
-  y += 40
+  y += 25
 
   doc.setFont('Times', 'bold')
   doc.text('TEMA', PAGE_W / 2, y, { align: 'center' })
@@ -120,7 +133,7 @@ export function generatePdf(data: PdfData): void {
     doc.text(line, PAGE_W / 2, y, { align: 'center' })
     y += 8
   }
-  y += 50
+  y += 15
 
   doc.setFontSize(12)
   doc.setFont('Times', 'bold')
@@ -128,7 +141,7 @@ export function generatePdf(data: PdfData): void {
   y += 6
   doc.setFont('Times', 'normal')
   doc.text(data.participante, PAGE_W / 2, y, { align: 'center' })
-  y += 16
+  y += 10
   doc.setFont('Times', 'bold')
   doc.text('Matrícula', PAGE_W / 2, y, { align: 'center' })
   y += 6
@@ -136,7 +149,7 @@ export function generatePdf(data: PdfData): void {
   if (data.matricula) {
     doc.text(data.matricula, PAGE_W / 2, y, { align: 'center' })
   }
-  y += 40
+  y += 14
   if (data.fecha) {
     doc.text(data.fecha, PAGE_W / 2, y, { align: 'center' })
   }
@@ -171,10 +184,12 @@ export function generatePdf(data: PdfData): void {
     y += LINE_H
   }
 
-  doc.save('documento.pdf')
+  const blob = doc.output('blob')
+  downloadBlob(blob, 'documento.pdf')
 }
 
 export function generatePdfWithImages(data: PdfData, paginas: Pagina[]): void {
+  console.log('generatePdfWithImages called')
   const doc = new jsPDF({
     unit: 'mm',
     format: 'letter',
@@ -226,7 +241,7 @@ export function generatePdfWithImages(data: PdfData, paginas: Pagina[]): void {
   doc.setFont('Times', 'normal')
   doc.setFontSize(12)
   doc.text(data.escuela, PAGE_W / 2, y, { align: 'center' })
-  y += 40
+  y += 25
 
   doc.setFont('Times', 'bold')
   doc.text('TEMA', PAGE_W / 2, y, { align: 'center' })
@@ -238,7 +253,7 @@ export function generatePdfWithImages(data: PdfData, paginas: Pagina[]): void {
     doc.text(line, PAGE_W / 2, y, { align: 'center' })
     y += 8
   }
-  y += 50
+  y += 15
 
   doc.setFontSize(12)
   doc.setFont('Times', 'bold')
@@ -246,7 +261,7 @@ export function generatePdfWithImages(data: PdfData, paginas: Pagina[]): void {
   y += 6
   doc.setFont('Times', 'normal')
   doc.text(data.participante, PAGE_W / 2, y, { align: 'center' })
-  y += 16
+  y += 10
   doc.setFont('Times', 'bold')
   doc.text('Matrícula', PAGE_W / 2, y, { align: 'center' })
   y += 6
@@ -254,7 +269,7 @@ export function generatePdfWithImages(data: PdfData, paginas: Pagina[]): void {
   if (data.matricula) {
     doc.text(data.matricula, PAGE_W / 2, y, { align: 'center' })
   }
-  y += 40
+  y += 14
   if (data.fecha) {
     doc.text(data.fecha, PAGE_W / 2, y, { align: 'center' })
   }
@@ -264,34 +279,22 @@ export function generatePdfWithImages(data: PdfData, paginas: Pagina[]): void {
     doc.addPage()
     addHeader(doc)
 
-    // Header "Desarrollo del ejercicio"
     doc.setFont('Times', 'bold')
     doc.setFontSize(12)
     doc.text('Desarrollo del ejercicio', PAGE_W / 2, MARGIN + 10, { align: 'center' })
 
-    // Image — fit within margins, constrained to page
     try {
       const fmt = pagina.mediaType === 'image/png' ? 'PNG' : 'JPEG'
-      const maxW = CONTENT_W
-      const maxH = PAGE_H - 2 * MARGIN - 30
-      const imgW = maxW
-      const imgH = maxH
+      const imgW = CONTENT_W
+      const imgH = PAGE_H - 2 * MARGIN - 30
       const imgX = PAGE_W / 2 - imgW / 2
       const imgY = MARGIN + 20
-      doc.addImage(
-        `data:${pagina.mediaType};base64,${pagina.base64}`,
-        fmt,
-        imgX,
-        imgY,
-        imgW,
-        imgH,
-        undefined,
-        'FAST',
-      )
+      doc.addImage(pagina.base64, fmt, imgX, imgY, imgW, imgH)
     } catch {
       // skip image if it fails to render
     }
   }
 
-  doc.save('documento.pdf')
+  const blob = doc.output('blob')
+  downloadBlob(blob, 'documento.pdf')
 }

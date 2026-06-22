@@ -112,8 +112,11 @@ function onGenerarPdf() {
 
   const faltantes: string[] = []
   if (!meta.instituto.trim()) faltantes.push('Instituto')
+  if (!meta.escuela.trim()) faltantes.push('Escuela')
+  if (!meta.matricula.trim()) faltantes.push('Matrícula')
   if (!meta.participante.trim()) faltantes.push('Participante')
   if (!meta.tema.trim()) faltantes.push('Tema')
+  if (!meta.fecha.trim()) faltantes.push('Fecha')
 
   if (faltantes.length > 0) {
     pdfError.value = `Faltan campos obligatorios: ${faltantes.join(', ')}`
@@ -125,17 +128,21 @@ function onGenerarPdf() {
   const pdfData = {
     logo: logoDataUrl.value,
     instituto: meta.instituto,
-    escuela: meta.escuela || '',
+    escuela: meta.escuela,
     tema: tituloFinal,
     participante: meta.participante,
-    matricula: meta.matricula || '',
-    fecha: meta.fecha || '',
+    matricula: meta.matricula,
+    fecha: meta.fecha,
     titulo: tituloFinal,
     secciones: imageMode.value ? [] : resolverSecciones(secciones.value),
   }
 
   if (imageMode.value) {
-    generatePdfWithImages(pdfData, paginas.value)
+    try {
+      generatePdfWithImages(pdfData, paginas.value)
+    } catch (e: any) {
+      pdfError.value = e.message || 'Error al generar PDF con imágenes'
+    }
   } else {
     generatePdf(pdfData)
   }
@@ -199,6 +206,14 @@ function onGenerarPdf() {
       />
     </div>
 
+    <a
+      class="sugerencias-flotante"
+      href="mailto:johnbdesing@gmail.com?subject=Sugerencia%20-%20Imapa.pdf"
+      target="_blank"
+    >
+      ¿Sugerencias?
+    </a>
+
   </div>
 </template>
 
@@ -253,6 +268,26 @@ body {
   padding: 8px 12px;
   margin: 0 24px 8px;
   text-align: center;
+}
+.sugerencias-flotante {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 100;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--paper-edge);
+  border-radius: 8px;
+  padding: 8px 14px;
+  text-decoration: none;
+  transition: color 0.15s, border-color 0.15s;
+}
+.sugerencias-flotante:hover {
+  color: var(--pen-red);
+  border-color: var(--pen-red);
 }
 .image-mode-note {
   font-family: var(--mono);

@@ -31,17 +31,47 @@ export function useDocument() {
     return enTitulo.length + enSecciones.length
   })
 
-  function agregarPagina(file: File) {
-    return new Promise<void>((resolve) => {
+  const MAX_IMG_DIM = 2048
+
+  function agregarPagina(file: File): Promise<void> {
+    return new Promise((resolve) => {
       const reader = new FileReader()
       reader.onload = () => {
-        paginas.value.push({
-          base64: (reader.result as string).split(',')[1],
-          mediaType: file.type || 'image/jpeg',
-          previewUrl: reader.result as string,
-        })
-        error.value = ''
-        resolve()
+        const rawDataUrl = reader.result as string
+        const mediaType = file.type || 'image/jpeg'
+        const img = new Image()
+        img.onload = () => {
+          let { naturalWidth: w, naturalHeight: h } = img
+          if (w > MAX_IMG_DIM || h > MAX_IMG_DIM) {
+            const ratio = Math.min(MAX_IMG_DIM / w, MAX_IMG_DIM / h)
+            w = Math.round(w * ratio)
+            h = Math.round(h * ratio)
+          }
+          const canvas = document.createElement('canvas')
+          canvas.width = w
+          canvas.height = h
+          const ctx = canvas.getContext('2d')!
+          ctx.drawImage(img, 0, 0, w, h)
+          const resized = canvas.toDataURL(mediaType === 'image/png' ? 'image/png' : 'image/jpeg', 0.85)
+          paginas.value.push({
+            base64: resized.split(',')[1],
+            mediaType,
+            previewUrl: rawDataUrl,
+          })
+          error.value = ''
+          resolve()
+        }
+        img.onerror = () => {
+          // fallback: push original if image load fails
+          paginas.value.push({
+            base64: rawDataUrl.split(',')[1],
+            mediaType,
+            previewUrl: rawDataUrl,
+          })
+          error.value = ''
+          resolve()
+        }
+        img.src = rawDataUrl
       }
       reader.readAsDataURL(file)
     })
