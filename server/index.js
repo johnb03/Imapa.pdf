@@ -37,7 +37,7 @@ Identificá el título general del cuestionario (normalmente al inicio de la pri
 
 Luego identificá cada pregunta o tema del cuestionario como una SECCIÓN separada. Cada sección debe tener su propio título (la pregunta o número de pregunta) y su contenido (la respuesta escrita). Si una pregunta tiene sub-preguntas, agrupalas bajo el mismo título de sección en el contenido.
 
-Si hay palabras o fragmentos que no podés leer con total certeza, NO los inventes ni los completes con suposiciones. Transcribí tu mejor estimación pero marcala usando el formato {{N}} dentro del texto (donde N es un número empezando en 0), y agregá esa estimación a la lista "dudas". Los marcadores {{N}} pueden aparecer tanto en el título de una sección como en su contenido.
+Si hay palabras o fragmentos que no podés leer con total certeza, NO los inventes ni los completes con suposiciones. Reemplazá COMPLETAMENTE la palabra o fragmento dudoso por ÚNICAMENTE el marcador {{N}} (donde N es un número empezando en 0) — no dejes la palabra original ni la escribas parcialmente, SOLO el marcador. Los marcadores {{N}} pueden aparecer tanto en el título de una sección como en su contenido. Agregá tu mejor estimación de la palabra reemplazada a la lista "dudas".
 
 Respondé ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin explicaciones, sin backticks de markdown, con esta estructura exacta:
 {"titulo": "título general del cuestionario, con marcadores {{N}} si aplica", "secciones": [{"titulo": "1. Primera pregunta", "contenido": "Respuesta con {{0}} si hay duda"}, {"titulo": "2. Segunda pregunta", "contenido": "Respuesta"}], "dudas": [{"id": 0, "estimado": "palabra o frase corta estimada"}]}

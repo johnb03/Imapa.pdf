@@ -18,7 +18,8 @@
 1. **Fotografiá** cada página de tu cuestionario (varias fotos, en orden)
 2. **IA transcribe** — Gemini 3.1 Flash Lite lee el texto manuscrito y lo estructura en título + secciones
 3. **Revisá dudas** — palabras que la IA no leyó con certeza se marcan en amarillo; tocándolas las corregís
-4. **Descargá PDF** — completá los datos de carátula y obtené el documento con formato APA 7
+4. **Editá el texto** — una vez corregidas las dudas, podés editar libremente el título y contenido de cada sección antes de generar el PDF
+5. **Descargá PDF** — completá los datos de carátula (todos obligatorios) y obtené el documento con formato APA 7
 
 > La IA **transcribe, no redacta**: no corrige ortografía, no completa ideas,
 > no inventa contenido que no esté en la foto. Si hay duda, la marca y te pregunta.

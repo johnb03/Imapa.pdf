@@ -122,6 +122,12 @@ export function useDocument() {
       titulo: reemplazar(s.titulo),
       contenido: reemplazar(s.contenido),
     }))
+    const duda = dudas.value.find((d) => d.id === id)
+    if (duda) duda.estimado = nuevoTexto
+    meta.tema = docTitulo.value.replace(/\{\{(\d+)\}\}/g, (_, id) => {
+      const d = dudas.value.find((dd) => dd.id === Number(id))
+      return d?.estimado ?? '___'
+    })
   }
 
   function setStep(s: Step) {

@@ -68,8 +68,6 @@ function onCorregir(dudaId: number) {
 function onConfirmarPopover(texto: string) {
   if (popoverDudaId !== null) {
     corregirDuda(popoverDudaId, texto)
-    const duda = dudas.value.find((d) => d.id === popoverDudaId)
-    if (duda) duda.estimado = texto
     popoverDudaId = null
   }
   popover.value.show = false
@@ -91,6 +89,13 @@ document.addEventListener('click', (e) => {
 
 function onLogoCambio(dataUrl: string | null) {
   logoDataUrl.value = dataUrl
+}
+
+function onGuardarEdicion(data: { titulo: string; secciones: { titulo: string; contenido: string }[] }) {
+  docTitulo.value = data.titulo
+  secciones.value = data.secciones
+  meta.tema = data.titulo
+  dudas.value = []
 }
 
 function resolverMarcadores(texto: string): string {
@@ -178,6 +183,7 @@ function onGenerarPdf() {
         :secciones="secciones"
         :dudas="dudas"
         @corregir="onCorregir"
+        @guardar="onGuardarEdicion"
       />
 
       <p v-if="imageMode" class="image-mode-note">
