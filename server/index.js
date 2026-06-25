@@ -35,7 +35,20 @@ app.post('/api/transcribe', async (req, res) => {
 
 Identificá el título general del cuestionario (normalmente al inicio de la primera página, puede estar subrayado, numerado o en letra más grande).
 
-Luego identificá cada pregunta o tema del cuestionario como una SECCIÓN separada. Cada sección debe tener su propio título (la pregunta o número de pregunta) y su contenido (la respuesta escrita). Si una pregunta tiene sub-preguntas, agrupalas bajo el mismo título de sección en el contenido.
+Luego identificá cada sección del cuestionario. Una sección comienza cuando:
+- Hay un número de pregunta (ej: "1.", "2)", "Pregunta 3") SEGUIDO del enunciado completo
+- Hay una palabra o frase destacada (subrayada, en negrita, o que funciona como encabezado temático) aunque no tenga número
+- Hay un cambio evidente de tema
+
+Para cada sección:
+- **"titulo"**: el número de pregunta (si existe) + el enunciado completo o encabezado temático.
+  Ej: "1. ¿Qué es la célula?" — NO solo "1."
+  Ej: "Partes de la célula" — aunque no tenga número, si funciona como título es el título.
+  Ej: "Conceptos fundamentales" — aunque no sea una pregunta literal.
+- **"contenido"**: SOLO la respuesta, definición o desarrollo que escribió el estudiante.
+  NO incluyas la pregunta ni el título en el contenido.
+
+Si una pregunta tiene sub-preguntas, agrupalas bajo el mismo título de sección en el contenido.
 
 Si hay palabras o fragmentos que no podés leer con total certeza, NO los inventes ni los completes con suposiciones. Reemplazá COMPLETAMENTE la palabra o fragmento dudoso por ÚNICAMENTE el marcador {{N}} (donde N es un número empezando en 0) — no dejes la palabra original ni la escribas parcialmente, SOLO el marcador. Los marcadores {{N}} pueden aparecer tanto en el título de una sección como en su contenido. Agregá tu mejor estimación de la palabra reemplazada a la lista "dudas".
 
